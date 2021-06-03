@@ -1,7 +1,9 @@
 package client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -10,12 +12,11 @@ import io.netty.handler.codec.string.StringEncoder;
 
 public class NettyClient {
     private SocketChannel channel;
-    private static final int PORT = 4000;
-    private Callable callable;
-    private String message;
+    private static final int PORT = 36000;
+    private CallbackCommand callback;
 
-    public NettyClient(Callable callable) {
-        this.callable = callable;
+    public NettyClient(CallbackCommand callback) {
+        this.callback = callback;
         Thread t1 = new Thread(() -> {
             EventLoopGroup worker = new NioEventLoopGroup();
             try {
@@ -29,17 +30,8 @@ public class NettyClient {
                                          socketChannel.pipeline().addLast(
                                                  new StringEncoder(),
                                                  new StringDecoder(),
-                                                 new SimpleChannelInboundHandler<String>() {
-                                                     @Override
-                                                     protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
-                                                         if (callable != null) {
-                                                             callable.call(s);
-                                                             // получение сообщений от сервера
-                                                         }
-
-                                                     }
-
-                                                 }
+                                                 new InfoMessageHandler(callback)
+                                                 // получение сообщений от сервера
                                          );
                                      }
                                  }
@@ -62,8 +54,5 @@ public class NettyClient {
     public void sendMessage(String msg) {
         channel.writeAndFlush(msg);
     }
-
-    /*public String messageFromServer() {
-        return message;
-    }*/
 }
+

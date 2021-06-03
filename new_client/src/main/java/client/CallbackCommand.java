@@ -1,5 +1,5 @@
 package client;
 
-public interface Callable {
+public interface CallbackCommand {
     void call(String str);
 }

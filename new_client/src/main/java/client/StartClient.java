@@ -8,18 +8,17 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class UserInterface extends Application {
+public class StartClient extends Application {
 
     public static void main(String[] args) {
         launch(args);
-
     }
 
     @Override
     public void start(Stage primaryStage) throws IOException, InterruptedException {
         Parent root = FXMLLoader.load(getClass().getResource("/UserInterface.fxml"));
         primaryStage.setTitle("Cloud Storage by E.Petrov");
-        primaryStage.setScene(new Scene(root, 750, 500));
+        primaryStage.setScene(new Scene(root, 1200, 600));
         primaryStage.show();
     }
 }

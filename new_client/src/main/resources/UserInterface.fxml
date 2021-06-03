@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.text.Text?>
+<VBox xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="client.InterfaceController">
+
+    <TextField fx:id="login"/>
+    <PasswordField fx:id="password"/>
+    <TextField fx:id="nickname" visible="false"/>
+
+    <TextField text="Filename" fx:id="filename"/>
+
+        <HBox spacing="10.0" maxWidth="-Infinity">
+            <Button maxWidth="100"  focusTraversable="false"  text="Create File" onAction="#createNewFile"/>
+            <Button maxWidth="100" focusTraversable="false" text="Create Dir" onAction="#createDirectory"/>
+            <Button maxWidth="100" focusTraversable="false" text="Upload" onAction="#upload"/>
+            <Button maxWidth="100" focusTraversable="false" text="Download" onAction="#download"/>
+            <Button maxWidth="100" focusTraversable="false" text="Copy" onAction="#copyFile"/>
+            <Button maxWidth="100" focusTraversable="false" text="Delete" onAction="#deleteFile"/>
+            <Button maxWidth="100" focusTraversable="false" text="Reg" onAction="#registration"/>
+            <Button maxWidth="100" focusTraversable="false" text="Show" onAction="#showFile"/>
+            <Button maxWidth="100" focusTraversable="false" text="Search" onAction="#search"/>
+            <Button maxWidth="100" focusTraversable="false" text="Auth" onAction="#authentication"/>
+            <Button maxWidth="100" focusTraversable="false" text="New Connect" onAction="#connect"/>
+            <padding>
+                <Insets left="20.0" right="20.0"/>
+            </padding>
+        </HBox>
+        <HBox>
+            <fx:include fx:id="clientInfo" source="Panel.fxml" HBox.hgrow="ALWAYS"/>
+            <fx:include fx:id="serverInfo" source="Panel.fxml" HBox.hgrow="ALWAYS"/>
+        </HBox>
+    <TextArea text="Information" fx:id="info" maxHeight="150"/>
+</VBox>
