@@ -15,7 +15,7 @@
         <PasswordField fx:id="password" promptText="password" visible="false" managed="false"/>
         <TextField fx:id="nicknameField" promptText="nickname" visible="false" managed="false"/>
         <Button fx:id="ok" maxWidth="100" focusTraversable="false" text="OK" onAction="#executeOperation" visible="false" managed="false"/>
-        <Button fx:id="back" maxWidth="100" focusTraversable="false" text="Back" visible="false" onAction="#back" managed="false"/>
+        <Button fx:id="cancel" maxWidth="100" focusTraversable="false" text="Cancel" visible="false" onAction="#cancel" managed="false"/>
     </HBox>
     <HBox>
         <Button maxWidth="100" focusTraversable="false" text="Authentication" onAction="#operAuth"/>

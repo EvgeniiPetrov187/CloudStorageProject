@@ -24,67 +24,50 @@ public class DataBaseService {
     }
 
 
-    public boolean registration(String login, String password, String nickname) {
+    public boolean registration(String login, String password, String nickname) throws SQLException {
         try {
             selSet.setString(1, login);
             selSet.setString(2, password);
             selSet.executeQuery();
             rs = selSet.executeQuery();
+            rs.next();
+            System.out.println(rs.getString("login"));
             if (login.equals(rs.getString("login")))
                 return false;
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException e){
+            e.printStackTrace();
         }
 
-        try {
-            insSet.setString(1, login);
-            insSet.setString(2, password);
-            insSet.setString(3, nickname);
-            insSet.executeUpdate();
-            return true;
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return false;
+        insSet.setString(1, login);
+        insSet.setString(2, password);
+        insSet.setString(3, nickname);
+        insSet.executeUpdate();
+        return true;
     }
 
-    public String getNicknameByLoginAndPassword(String login, String password) {
-        try {
-            selNickSet.setString(1, login);
-            selNickSet.setString(2, password);
-            selNickSet.executeQuery();
-            nickRS = selNickSet.executeQuery();
-            nickRS.next();
-            return nickRS.getString("nickname");
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return null;
+    public String getNicknameByLoginAndPassword(String login, String password) throws SQLException {
+        selNickSet.setString(1, login);
+        selNickSet.setString(2, password);
+        selNickSet.executeQuery();
+        nickRS = selNickSet.executeQuery();
+        nickRS.next();
+        return nickRS.getString("nickname");
     }
 
-    public boolean changeNick(String nickname, String newNickName) {
-        try {
-            upNick.setString(1, newNickName);
-            upNick.setString(2, nickname);
-            upNick.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            return false;
-        }
+    public boolean changeNick(String nickname, String newNickName) throws SQLException {
+        upNick.setString(1, newNickName);
+        upNick.setString(2, nickname);
+        upNick.executeUpdate();
+        return true;
     }
 
-    public boolean connect() {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mysql", "root", "13barsik!Z");
-            statement = connection.createStatement();
-            prepareAllStatements();
-            System.out.println("Connected with database");
-            return true;
-        } catch (SQLException | ClassNotFoundException throwables) {
-            throwables.printStackTrace();
-            return false;
-        }
+    public boolean connect() throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mysql", "root", "13barsik!Z");
+        statement = connection.createStatement();
+        prepareAllStatements();
+        System.out.println("Connected with database");
+        return true;
     }
 
     public void disconnect() {

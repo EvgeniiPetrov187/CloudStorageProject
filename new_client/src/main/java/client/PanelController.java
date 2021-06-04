@@ -25,14 +25,6 @@ public class PanelController implements Initializable {
     @FXML
     public TextField filePath;
 
-
-
-    @FXML
-    public TextField fileActive;
-
-    // @FXML
-    //public ComboBox<String> side;
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         TableColumn<MyFile, String> fileType = new TableColumn<>("Type");
@@ -78,11 +70,6 @@ public class PanelController implements Initializable {
         tableInfo.getSortOrder().add(fileType);
         tableInfo.getSortOrder().add(fileName);
 
-        //side.getItems().clear();
-        ///side.getItems().add(serverDirectory);
-        //side.getItems().add(clientDirectory);
-
-
         tableInfo.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
@@ -96,7 +83,6 @@ public class PanelController implements Initializable {
                 }
             }
         });
-
     }
 
     public void updateList(Path path) {
@@ -121,19 +107,14 @@ public class PanelController implements Initializable {
         }
     }
 
-    /*public void selectDirectory(ActionEvent actionEvent) {
-        ComboBox<String> folder = (ComboBox<String>) actionEvent.getSource();
-        updateList(Paths.get(folder.getSelectionModel().getSelectedItem()));
-    }*/
-
-    public String getFileName (){
-        if (!tableInfo.isFocused()){
+    public String getFileName() {
+        if (!tableInfo.isFocused()) {
             return null;
         }
         return tableInfo.getSelectionModel().getSelectedItem().getFilename();
     }
 
-    public String getFilePath(){
+    public String getFilePath() {
         return filePath.getText();
     }
 

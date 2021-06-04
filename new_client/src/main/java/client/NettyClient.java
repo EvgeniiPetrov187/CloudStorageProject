@@ -31,7 +31,6 @@ public class NettyClient {
                                                  new StringEncoder(),
                                                  new StringDecoder(),
                                                  new InfoMessageHandler(callback)
-                                                 // получение сообщений от сервера
                                          );
                                      }
                                  }
