@@ -19,6 +19,7 @@
         <Button maxWidth="100" focusTraversable="false" text="Registration" onAction="#operReg"/>
         <Button maxWidth="150" focusTraversable="false" text="Change Nickname" onAction="#operNick"/>
         <Button maxWidth="150" focusTraversable="false" text="Restart Connection" onAction="#connect"/>
+        <Button maxWidth="150" focusTraversable="false" text="Disconnect" onAction="#disconnect"/>
     </HBox>
 
         <TextField promptText="Type the name of file or directory" fx:id="filename"/>

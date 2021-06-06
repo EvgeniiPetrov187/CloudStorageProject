@@ -15,8 +15,12 @@ public class InfoMessageHandler extends SimpleChannelInboundHandler<String> {
     }
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, String o) throws Exception {
+        if (o.equals("dis"))
+            channelHandlerContext.close();
+
         if (callback != null)
             callback.call(o);
+
     }
 }
 

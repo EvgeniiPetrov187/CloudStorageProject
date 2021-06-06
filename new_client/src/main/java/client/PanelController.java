@@ -96,7 +96,7 @@ public class PanelController implements Initializable {
      */
     public void updateList(Path path) {
         try {
-            filePath.setText(path.normalize().toString());
+            filePath.setText(path.normalize().toAbsolutePath().toString());
             tableInfo.getItems().clear();
             tableInfo.getItems()
                     .addAll(Files.list(path)
@@ -115,7 +115,7 @@ public class PanelController implements Initializable {
      */
     public void upToDirectory(ActionEvent actionEvent) {
         Path up = Paths.get(filePath.getText()).getParent();
-        if (!up.startsWith("server") || !up.startsWith("client")) {
+        if (up != null) {
             updateList(up);
         }
     }

@@ -13,6 +13,7 @@ import java.sql.SQLException;
 public class CommandHandler extends SimpleChannelInboundHandler<String> {
     private DataBaseService dataBaseService = new DataBaseService();
     String currentDirectory;
+    String abs;
 
     /**
      * метод соединяется с базой данных, если клиент подключен
@@ -51,19 +52,22 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
             authentication(commands, ctx);
         } else if (command.startsWith("nick")) {
             changeNick(commands, ctx);
+        } else if (command.startsWith("dis")) {
+            channelInactive(ctx);
         }
-        System.out.println("Message from client: " + msg);
     }
 
     /**
-     * отключение от базы данных, когда клиент отключился
+     * отключение от базы данных, когда клиент не активен
      * @param ctx клиент
      * @throws Exception
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        ctx.writeAndFlush("dis");
         System.out.println("Client disconnected: " + ctx.channel());
         dataBaseService.disconnect();
+        ctx.close();
     }
 
     /**
@@ -78,12 +82,13 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
             currentDirectory = "server_" + commands[1];
             try {
                 Path newDir = Paths.get(currentDirectory);
+                abs = newDir.toAbsolutePath().toString();
                 if (!Files.exists(newDir))
                     Files.createDirectory(newDir);
             } catch (IOException e) {
                 ctx.writeAndFlush("Info: Folder creation error");
             }
-            ctx.writeAndFlush("auth " + currentDirectory + " " + nickname);
+            ctx.writeAndFlush("auth--f" + abs + "--f" + nickname);
         } catch (SQLException e) {
             ctx.writeAndFlush("Info: Authentication failed");
             e.printStackTrace();

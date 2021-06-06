@@ -68,8 +68,9 @@ public class InterfaceController implements Initializable {
         nettyClient = new NettyClient((args) -> {
             String[] answer = args.split(" ");
             if (args.startsWith("auth")) {
-                serverDirectory = answer[1];
-                nickname = answer[2];
+                String[] auth = args.split("--f");
+                serverDirectory = auth[1];
+                nickname = auth[2];
                 setTitle(nickname);
                 nettyClient.sendMessage("cd " + serverDirectory);
                 System.out.println();
@@ -312,6 +313,20 @@ public class InterfaceController implements Initializable {
     }
 
     /**
+     * метод отправки сообщения на сервер об отключении и очистке всех полей на клиенте
+     * @param actionEvent - нажатие кнопки Disconnect
+     */
+    public void disconnect(ActionEvent actionEvent) {
+        nettyClient.sendMessage("dis");
+        cancelAll();
+        clientPC.filePath.clear();
+        serverPC.filePath.clear();
+        clientPC.tableInfo.getItems().clear();
+        serverPC.tableInfo.getItems().clear();
+        info.clear();
+    }
+
+    /**
      * метод для просмотра содержимого выбранного файла или список файлов в выбранной директории
      * @param actionEvent - нажатие кнопки Show File
      */
@@ -450,4 +465,6 @@ public class InterfaceController implements Initializable {
         ok.setManaged(false);
         back.setManaged(false);
     }
+
+
 }
