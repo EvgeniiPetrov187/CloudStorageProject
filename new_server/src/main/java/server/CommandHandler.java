@@ -14,6 +14,11 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
     private DataBaseService dataBaseService = new DataBaseService();
     String currentDirectory;
 
+    /**
+     * метод соединяется с базой данных, если клиент подключен
+     * @param ctx - клиент
+     * @throws Exception
+     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("Client connected: " + ctx.channel());
@@ -25,6 +30,12 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
         }
     }
 
+    /**
+     * метод чтения комманд от клиента
+     * @param ctx - клиент
+     * @param msg - команда
+     * @throws Exception
+     */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
         String command = msg
@@ -44,13 +55,23 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
         System.out.println("Message from client: " + msg);
     }
 
-
+    /**
+     * отключение от базы данных, когда клиент отключился
+     * @param ctx клиент
+     * @throws Exception
+     */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("Client disconnected: " + ctx.channel());
         dataBaseService.disconnect();
     }
 
+    /**
+     * отпрака запроса в базу данных для входа, создание директории пользователя на сервере, если она ещё не создана
+     * и отправка новой директории сервера клиенту в случае успеха
+     * @param commands информация от клинета логин и пароль
+     * @param ctx клиент
+     */
     private void authentication(String[] commands, ChannelHandlerContext ctx) {
         try {
             String nickname = dataBaseService.getNicknameByLoginAndPassword(commands[1], commands[2]);
@@ -69,6 +90,11 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
         }
     }
 
+    /**
+     * регистрация нового пользователя в базе данных, создание директории пользоваетля на сервере
+     * @param commands информация от клиента логин, пароль и ник
+     * @param ctx клиент
+     */
     private void registrationDB(String[] commands, ChannelHandlerContext ctx) {
         try {
             dataBaseService.registration(commands[1], commands[2], commands[3]);
@@ -87,6 +113,11 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
         ctx.writeAndFlush("Info: Registration successful");
     }
 
+    /**
+     * отправка запроса в базу данных для смены ника
+     * @param commands информация от клиента старый ник и новый ник
+     * @param ctx клиент
+     */
     private void changeNick(String[] commands, ChannelHandlerContext ctx) {
         try {
             dataBaseService.changeNick(commands[1], commands[2]);

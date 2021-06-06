@@ -15,6 +15,10 @@ public class NettyClient {
     private static final int PORT = 36000;
     private CallbackCommand callback;
 
+    /**
+     * клиент на Netty
+     * @param callback - сообщение от сервера
+     */
     public NettyClient(CallbackCommand callback) {
         this.callback = callback;
         Thread t1 = new Thread(() -> {
@@ -48,8 +52,10 @@ public class NettyClient {
         t1.setDaemon(true);
         t1.start();
     }
-
-    //отсылка сообщений на сервер
+    /**
+     * метод отправки комманд на сервер
+     * @param msg - команда
+     */
     public void sendMessage(String msg) {
         channel.writeAndFlush(msg);
     }

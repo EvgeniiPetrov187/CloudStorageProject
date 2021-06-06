@@ -6,9 +6,10 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+/**
+ * класс который отображает файлы в таблицах класса PanelController
+ */
 public class MyFile {
-
-
     public enum TypeOfFile {
         FILE("File"),
         DIRECTORY("Directory");

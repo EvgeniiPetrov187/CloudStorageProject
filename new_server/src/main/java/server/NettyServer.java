@@ -10,7 +10,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
-
+/**
+ * сервер Netty
+ */
 public class NettyServer {
     public NettyServer() {
         EventLoopGroup auth = new NioEventLoopGroup(1);

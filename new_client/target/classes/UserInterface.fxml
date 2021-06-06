@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<?import javafx.scene.text.Text?>
 <VBox xmlns="http://javafx.com/javafx/8"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="client.InterfaceController">
@@ -15,16 +12,16 @@
         <PasswordField fx:id="password" promptText="password" visible="false" managed="false"/>
         <TextField fx:id="nicknameField" promptText="nickname" visible="false" managed="false"/>
         <Button fx:id="ok" maxWidth="100" focusTraversable="false" text="OK" onAction="#executeOperation" visible="false" managed="false"/>
-        <Button fx:id="cancel" maxWidth="100" focusTraversable="false" text="Cancel" visible="false" onAction="#cancel" managed="false"/>
+        <Button fx:id="back" maxWidth="100" focusTraversable="false" text="Back" visible="false" onAction="#back" managed="false"/>
     </HBox>
-    <HBox>
+    <HBox spacing="10.0">
         <Button maxWidth="100" focusTraversable="false" text="Authentication" onAction="#operAuth"/>
         <Button maxWidth="100" focusTraversable="false" text="Registration" onAction="#operReg"/>
         <Button maxWidth="150" focusTraversable="false" text="Change Nickname" onAction="#operNick"/>
         <Button maxWidth="150" focusTraversable="false" text="Restart Connection" onAction="#connect"/>
     </HBox>
 
-        <TextField promptText="Type the name of file" fx:id="filename"/>
+        <TextField promptText="Type the name of file or directory" fx:id="filename"/>
 
     <HBox spacing="10.0" maxWidth="-Infinity">
         <Button maxWidth="100" focusTraversable="false" text="Create File" onAction="#createNewFile"/>
@@ -41,7 +38,7 @@
         <fx:include fx:id="clientInfo" source="Panel.fxml" HBox.hgrow="ALWAYS"/>
         <fx:include fx:id="serverInfo" source="Panel.fxml" HBox.hgrow="ALWAYS"/>
     </HBox>
-    <TextArea text="Information" fx:id="info" maxHeight="150"/>
+    <TextArea promptText="Information" fx:id="info" maxHeight="150" editable="false"/>
     <padding>
         <Insets left="20.0" right="20.0" bottom="20.0" top="20.0"/>
     </padding>

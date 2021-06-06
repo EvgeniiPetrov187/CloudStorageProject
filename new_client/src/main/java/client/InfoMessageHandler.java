@@ -6,6 +6,10 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class InfoMessageHandler extends SimpleChannelInboundHandler<String> {
     CallbackCommand callback;
 
+    /**
+     * Хендлер получения сообщений с сервера
+     * @param callback - сообщение
+     */
     public InfoMessageHandler(CallbackCommand callback){
         this.callback = callback;
     }

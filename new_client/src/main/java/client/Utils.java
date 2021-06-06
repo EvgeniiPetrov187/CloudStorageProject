@@ -9,6 +9,11 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public class Utils {
+    /**
+     * вспомогательный метод вызова предупреждения если не выбрана ни одна из директорий
+     * @param serverPC - директория сервера
+     * @param clientPC - директория клиента
+     */
     public void chooseFileAlert(PanelController serverPC, PanelController clientPC) {
         if (serverPC.getFileName() == null && clientPC.getFileName() == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Choose file", ButtonType.OK);
@@ -16,6 +21,12 @@ public class Utils {
         }
     }
 
+    /**
+     * основной метода для поиска файлов в директориях
+     * @param pathName директория поиска
+     * @param filename имя файла
+     * @param info область для вывода информации
+     */
     public void methodForSearch(String pathName, String filename, TextArea info) {
         try {
             Path pathToFile = Paths.get(pathName);
@@ -43,7 +54,12 @@ public class Utils {
         }
     }
 
-
+    /**
+     * основной метод для копирования файлов или директорий
+     * @param src исходная директория и имя файла
+     * @param dst конечная директория
+     * @throws IOException
+     */
     public void methodForCopy(Path src, Path dst) throws IOException {
         Files.walkFileTree(src, new SimpleFileVisitor<Path>() {
             @Override
@@ -63,6 +79,10 @@ public class Utils {
         });
     }
 
+    /**
+     * основной метод удаления файла или директории
+     * @param sourcePath путь файла или директории
+     */
     public void methodForDelete(Path sourcePath) {
         try {
             Files.walkFileTree(sourcePath, new SimpleFileVisitor<Path>() {

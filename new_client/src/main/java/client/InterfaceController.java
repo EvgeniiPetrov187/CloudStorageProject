@@ -47,7 +47,11 @@ public class InterfaceController implements Initializable {
     @FXML
     public TextField filename;
 
-
+    /**
+     * Инициализация окна, таблиц из файла Panel и дополнительных методов из класса Util
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         clientPC = (PanelController) clientInfo.getProperties().get("ctrl");
@@ -56,6 +60,10 @@ public class InterfaceController implements Initializable {
         connect();
     }
 
+    /**
+     * метод запуска клиента и настройки на обработку сообщений с сервера,
+     * может быть вызван на кнопку Restart Connection
+     */
     public void connect() {
         nettyClient = new NettyClient((args) -> {
             String[] answer = args.split(" ");
@@ -80,7 +88,10 @@ public class InterfaceController implements Initializable {
         });
     }
 
-    // создание файла на сервере works
+    /**
+     * метод создания файла на сервере или клиенте
+     * @param actionEvent - нажатие кнопки Create File
+     */
     public void createNewFile(ActionEvent actionEvent) {
         String target = null;
 
@@ -110,7 +121,10 @@ public class InterfaceController implements Initializable {
     }
 
 
-    // создание директории on server works
+    /**
+     * метод создания директории на сервере или клиенте
+     * @param actionEvent - нажатие кнопки Create Directory
+     */
     public void createDirectory(ActionEvent actionEvent) {
         String target = null;
 
@@ -139,7 +153,10 @@ public class InterfaceController implements Initializable {
         updatePanel();
     }
 
-    //works
+    /**
+     * метод загрузки файла на сервер, на клиенте файл удаляется
+     * @param actionEvent - нажатие кнопки Upload File
+     */
     public void upload(ActionEvent actionEvent) {
         if (clientPC.getFileName() == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Choose file on client", ButtonType.OK);
@@ -159,7 +176,10 @@ public class InterfaceController implements Initializable {
         }
     }
 
-    //works
+    /**
+     * метод загрузки файла на клиент, на сервере файл удаляется
+     * @param actionEvent - нажатие кнопки Download File
+     */
     public void download(ActionEvent actionEvent) {
         if (serverPC.getFileName() == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Choose file on server", ButtonType.OK);
@@ -179,7 +199,10 @@ public class InterfaceController implements Initializable {
         }
     }
 
-    // копирование файла works
+    /**
+     * метод копирования файла из выбранной директории сервера на клиент и наоборот
+     * @param actionEvent - нажатие кнопки Copy File
+     */
     public void copyFile(ActionEvent actionEvent) {
         utils.chooseFileAlert(serverPC, clientPC);
 
@@ -207,7 +230,10 @@ public class InterfaceController implements Initializable {
         }
     }
 
-    // удаление файла или директории works
+    /**
+     * метод удаляет выбранный файл или директорию
+     * @param actionEvent - нажатие кнопки Delete File
+     */
     public void deleteFile(ActionEvent actionEvent) {
         utils.chooseFileAlert(serverPC, clientPC);
 
@@ -224,12 +250,18 @@ public class InterfaceController implements Initializable {
         updatePanel();
     }
 
-    // поиск файла
+    /**
+     * метод для поиска файла во всех папках и выдача полного пути файла в поле info
+     * @param actionEvent - нажатие кнопки Search File
+     */
     public void search(ActionEvent actionEvent) {
         utils.methodForSearch(clientPC.getFilePath(), filename.getText(), info);
         utils.methodForSearch(serverPC.getFilePath(), filename.getText(), info);
     }
 
+    /**
+     * метод для регистрации в базе данных, отправляет запрос на сервер
+     */
     public void registration() {
         if (nicknameField.getText().length() * login.getText().length() * password.getText().length() != 0) {
             clientDirectory = "client_" + login.getText();
@@ -243,7 +275,9 @@ public class InterfaceController implements Initializable {
         }
     }
 
-    // works
+    /**
+     * метод для входа в свой профиль через базу данных, запрос отправляется на сервер
+     */
     public void authentication() {
         if (login.getText().length() * password.getText().length() != 0) {
             clientDirectory = "client_" + login.getText();
@@ -258,12 +292,18 @@ public class InterfaceController implements Initializable {
         }
     }
 
+    /**
+     * метод изменения ника через базу данных, отправляет запрос на сервер
+     */
     public void changeNickName() {
         if (nickname != null) {
             nettyClient.sendMessage("nick " + nickname + " " + nicknameField.getText());
         }
     }
 
+    /**
+     * метод обновляет директории после изменений и отправляет информацию о новой директории на сервер
+     */
     public void updatePanel() {
         clientPC.updateList(Paths.get(clientPC.getFilePath()));
         serverPC.updateList(Paths.get(serverPC.getFilePath()));
@@ -271,6 +311,10 @@ public class InterfaceController implements Initializable {
         System.out.println(serverPC.getFilePath());
     }
 
+    /**
+     * метод для просмотра содержимого выбранного файла или список файлов в выбранной директории
+     * @param actionEvent - нажатие кнопки Show File
+     */
     public void showFile(ActionEvent actionEvent) {
         utils.chooseFileAlert(serverPC, clientPC);
 
@@ -301,6 +345,10 @@ public class InterfaceController implements Initializable {
         }
     }
 
+    /**
+     * метод изменяет заголовок окна программы добавляя ник пользователя
+     * @param nick новый ник
+     */
     private void setTitle(String nick) {
         Platform.runLater(() -> {
             stage = (Stage) nicknameField.getScene().getWindow();
@@ -308,6 +356,10 @@ public class InterfaceController implements Initializable {
         });
     }
 
+    /**
+     * метод для кнопки ОК, которая соответствует трём операциям: Регистрация, Вход, Смена ника
+     * @param actionEvent - нажатие кнопки ОК
+     */
     public void executeOperation(ActionEvent actionEvent) {
         switch (operationId){
             case 1:
@@ -322,6 +374,10 @@ public class InterfaceController implements Initializable {
         }
     }
 
+    /**
+     * метод выбора операции Входа пользователя и компонования интерфейса пользователя
+     * @param actionEvent - нажатие кнопки Authentication
+     */
     public void operAuth(ActionEvent actionEvent) {
         operationId = 2;
         login.setVisible(true);
@@ -336,6 +392,10 @@ public class InterfaceController implements Initializable {
         back.setManaged(true);
     }
 
+    /**
+     * метод выбора операции Регистрации пользователя и компонования интерфейса пользователя
+     * @param actionEvent - нажатие кнопки Registration
+     */
     public void operReg(ActionEvent actionEvent) {
         operationId = 1;
         login.setVisible(true);
@@ -350,6 +410,10 @@ public class InterfaceController implements Initializable {
         back.setManaged(true);
     }
 
+    /**
+     * метод выбора операции Смены ника пользователя и компонования интерфейса пользователя
+     * @param actionEvent - нажатие кнопки Change Nickname
+     */
     public void operNick(ActionEvent actionEvent) {
         operationId = 3;
         nicknameField.setVisible(true);
@@ -364,10 +428,16 @@ public class InterfaceController implements Initializable {
         back.setManaged(true);
     }
 
+    /**
+     * вызов метода возврата
+     * @param actionEvent - нажатие кнопки Back
+     */
     public void back(ActionEvent actionEvent){
         cancelAll();
     }
-
+    /**
+     * метод возврата без регистрации смены ника и входа. Убирает все поля и кнопки для регистрации
+     */
     public void cancelAll(){
         nicknameField.setVisible(false);
         login.setVisible(false);

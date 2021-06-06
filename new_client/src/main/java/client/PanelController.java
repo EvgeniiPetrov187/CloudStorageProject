@@ -25,6 +25,11 @@ public class PanelController implements Initializable {
     @FXML
     public TextField filePath;
 
+    /**
+     * построение двух таблиц, отображающих файлы и их свойства
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         TableColumn<MyFile, String> fileType = new TableColumn<>("Type");
@@ -85,6 +90,10 @@ public class PanelController implements Initializable {
         });
     }
 
+    /**
+     * обновление директорий после измененеий или перехода
+     * @param path
+     */
     public void updateList(Path path) {
         try {
             filePath.setText(path.normalize().toString());
@@ -100,6 +109,10 @@ public class PanelController implements Initializable {
         }
     }
 
+    /**
+     * возврат вверх по директории
+     * @param actionEvent - нажатие на кнопку Up
+     */
     public void upToDirectory(ActionEvent actionEvent) {
         Path up = Paths.get(filePath.getText()).getParent();
         if (!up.startsWith("server") || !up.startsWith("client")) {
@@ -107,6 +120,10 @@ public class PanelController implements Initializable {
         }
     }
 
+    /**
+     * метод возвращает имя выбранного файла
+     * @return - имя файла
+     */
     public String getFileName() {
         if (!tableInfo.isFocused()) {
             return null;
@@ -114,10 +131,18 @@ public class PanelController implements Initializable {
         return tableInfo.getSelectionModel().getSelectedItem().getFilename();
     }
 
+    /**
+     * метод возвращает путь выбранного файла
+     * @return - путь файла
+     */
     public String getFilePath() {
         return filePath.getText();
     }
 
+    /**
+     * метод изменяет путь выбранного файла
+     * @param  - новый путь файла
+     */
     public void setFilePath(String filePath) {
         this.filePath.setText(filePath);
     }
