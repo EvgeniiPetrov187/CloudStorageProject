@@ -1,5 +1,7 @@
 package client;
 
+
+import fileutils.SendFile;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,6 +16,7 @@ import java.net.URL;
 import java.nio.file.*;
 import java.util.ResourceBundle;
 
+
 public class InterfaceController implements Initializable {
 
     private NettyClient nettyClient;
@@ -27,6 +30,7 @@ public class InterfaceController implements Initializable {
     private int numberOfNewFiles = 1;
     private int numberOfNewDirectories = 1;
     private int operationId;
+    private SendFile sendFile;
 
     @FXML
     public Button ok;
@@ -47,8 +51,12 @@ public class InterfaceController implements Initializable {
     @FXML
     public TextField filename;
 
+    public InterfaceController() throws IOException {
+    }
+
     /**
      * Инициализация окна, таблиц из файла Panel и дополнительных методов из класса Util
+     *
      * @param location
      * @param resources
      */
@@ -65,174 +73,180 @@ public class InterfaceController implements Initializable {
      * может быть вызван на кнопку Restart Connection
      */
     public void connect() {
-        nettyClient = new NettyClient((args) -> {
-            String[] answer = args.split(" ");
-            if (args.startsWith("auth")) {
-                String[] auth = args.split("--f");
-                serverDirectory = auth[1];
-                nickname = auth[2];
-                setTitle(nickname);
-                nettyClient.sendMessage("cd " + serverDirectory);
-                System.out.println();
-                clientPC.setFilePath(clientDirectory);
-                serverPC.setFilePath(serverDirectory);
-                updatePanel();
-                cancelAll();
-                info.setText("Authentication successful");
-            } else if (args.startsWith("nick")) {
-                nickname = answer[1];
-                setTitle(nickname);
-                info.clear();
-            } else if (args.startsWith("Info")) {
-                info.setText(args);
-            }
+        Platform.runLater(() -> {
+            nettyClient = new NettyClient((args) -> {
+                if (args instanceof String) {
+                    String msg = (String) args;
+                    String[] answer = msg.split("--s-");
+                    if (msg.startsWith("auth")) {
+                        serverDirectory = answer[1];
+                        nickname = answer[2];
+                        setTitle(nickname);
+                        clientPC.setFilePath(clientDirectory);
+                        serverPC.setFilePath(serverDirectory);
+                        updatePanel();
+                        cancelAll();
+                        info.setText("Authentication successful");
+                    } else if (msg.startsWith("nick")) {
+                        nickname = answer[1];
+                        setTitle(nickname);
+                        info.clear();
+                    } else if (msg.startsWith("Info")) {
+                        info.setText(msg);
+                    } else if (msg.startsWith("new")) {
+                        updatePanel();
+                    }
+                } else if (args instanceof SendFile) {
+                    try {
+                        args = new SendFile(((SendFile) args).getName(), ((SendFile) args).getBytes(), ((SendFile) args).getPath());
+                        if (!Files.exists(Paths.get(clientPC.getFilePath(), ((SendFile) args).getName()))) {
+                            Files.createFile(Paths.get(clientPC.getFilePath(), ((SendFile) args).getName()));
+                            Files.write(Paths.get(clientPC.getFilePath(), ((SendFile) args).getName()), ((SendFile) args).getBytes());
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    updatePanel();
+                }
+            });
         });
     }
 
     /**
      * метод создания файла на сервере или клиенте
+     *
      * @param actionEvent - нажатие кнопки Create File
      */
     public void createNewFile(ActionEvent actionEvent) {
         String target = null;
 
-        if (clientPC.tableInfo.isFocused()) {
-            target = clientPC.getFilePath();
-        }
         if (serverPC.tableInfo.isFocused()) {
             target = serverPC.getFilePath();
+            nettyClient.sendMessage("touch--s-" + filename.getText());
+        }
+
+        if (clientPC.tableInfo.isFocused()) {
+            target = clientPC.getFilePath();
+            try {
+                Path newFile = Paths.get(target, filename.getText());
+                if (!Files.exists(newFile))
+                    Files.createFile(newFile);
+                if (filename.getText().equals("")) {
+                    newFile = Paths.get(target, "new file(" + numberOfNewFiles + ")");
+                    numberOfNewFiles++;
+                    Files.createFile(newFile);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            updatePanel();
         }
         if (target == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Choose Folder", ButtonType.OK);
             alert.showAndWait();
         }
-        try {
-            Path newFile = Paths.get(target, filename.getText());
-            if (!Files.exists(newFile))
-                Files.createFile(newFile);
-            if (filename.getText().equals("")) {
-                newFile = Paths.get(target, "new file(" + numberOfNewFiles + ")");
-                numberOfNewFiles++;
-                Files.createFile(newFile);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        updatePanel();
     }
 
 
     /**
      * метод создания директории на сервере или клиенте
+     *
      * @param actionEvent - нажатие кнопки Create Directory
      */
     public void createDirectory(ActionEvent actionEvent) {
         String target = null;
 
-        if (clientPC.tableInfo.isFocused()) {
-            target = clientPC.getFilePath();
-        }
         if (serverPC.tableInfo.isFocused()) {
             target = serverPC.getFilePath();
+            nettyClient.sendMessage("mkdir--s-" + filename.getText());
+        }
+        if (clientPC.tableInfo.isFocused()) {
+            target = clientPC.getFilePath();
+            try {
+                Path newDir = Paths.get(target, filename.getText());
+                if (!Files.exists(newDir))
+                    Files.createDirectory(newDir);
+                if (filename.getText().equals("")) {
+                    newDir = Paths.get(target, "New Folder(" + numberOfNewDirectories + ")");
+                    numberOfNewDirectories++;
+                    Files.createDirectory(newDir);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            updatePanel();
         }
         if (target == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Choose Folder", ButtonType.OK);
             alert.showAndWait();
         }
-        try {
-            Path newDir = Paths.get(target, filename.getText());
-            if (!Files.exists(newDir))
-                Files.createDirectory(newDir);
-            if (filename.getText().equals("")) {
-                newDir = Paths.get(target, "New Folder(" + numberOfNewDirectories + ")");
-                numberOfNewDirectories++;
-                Files.createDirectory(newDir);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        updatePanel();
+
     }
 
     /**
-     * метод загрузки файла на сервер, на клиенте файл удаляется
+     * метод отправляет файл на сервер
+     *
      * @param actionEvent - нажатие кнопки Upload File
      */
     public void upload(ActionEvent actionEvent) {
-        if (clientPC.getFileName() == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Choose file on client", ButtonType.OK);
-            alert.showAndWait();
-        }
-
-        Path sourcePath = Paths.get(clientPC.getFilePath(), clientPC.getFileName());
-        Path destPath = Paths.get(serverPC.getFilePath()).resolve(sourcePath.getFileName().toString());
-
-        try {
-            utils.methodForCopy(sourcePath, destPath);
-            utils.methodForDelete(sourcePath);
-            updatePanel();
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Upload error", ButtonType.OK);
+        if (!Files.isDirectory(Paths.get(clientPC.getFilePath(), clientPC.getFileName()).toAbsolutePath())) {
+            try {
+                byte[] byteBuf = Files.readAllBytes(Paths.get(clientPC.getFilePath(), clientPC.getFileName()).toAbsolutePath());
+                sendFile = new SendFile(clientPC.getFileName(), byteBuf, serverPC.getFilePath());
+                nettyClient.sendMessage(sendFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Choose file, not directory", ButtonType.OK);
             alert.showAndWait();
         }
     }
 
     /**
-     * метод загрузки файла на клиент, на сервере файл удаляется
+     * метод отправляет сообщение на сервер о загрузке файла на клиент
+     *
      * @param actionEvent - нажатие кнопки Download File
      */
     public void download(ActionEvent actionEvent) {
-        if (serverPC.getFileName() == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Choose file on server", ButtonType.OK);
-            alert.showAndWait();
-        }
-
-        Path sourcePath = Paths.get(serverPC.getFilePath(), serverPC.getFileName());
-        Path destPath = Paths.get(clientPC.getFilePath()).resolve(sourcePath.getFileName().toString());
-
-        try {
-            utils.methodForCopy(sourcePath, destPath);
-            utils.methodForDelete(sourcePath);
-            updatePanel();
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Download error", ButtonType.OK);
+        if (!Files.isDirectory(Paths.get(serverPC.getFilePath(), serverPC.getFileName()))) {
+            nettyClient.sendMessage("download--s-" + serverPC.getFilePath() + "--s-" + serverPC.getFileName());
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Choose file, not directory", ButtonType.OK);
             alert.showAndWait();
         }
     }
 
     /**
-     * метод копирования файла из выбранной директории сервера на клиент и наоборот
+     * метод копирования файла внутри директории клиента или сервера
+     *
      * @param actionEvent - нажатие кнопки Copy File
      */
     public void copyFile(ActionEvent actionEvent) {
         utils.chooseFileAlert(serverPC, clientPC);
 
         PanelController source = null;
-        PanelController destination = null;
 
-        if (clientPC.getFileName() != null) {
-            source = clientPC;
-            destination = serverPC;
-        }
         if (serverPC.getFileName() != null) {
-            source = serverPC;
-            destination = clientPC;
+            nettyClient.sendMessage("copy--s-" + serverPC.getFileName());
         }
+        if (clientPC.getFileName() != null) {
+            Path sourcePath = Paths.get(clientPC.getFilePath(), clientPC.getFileName());
+            Path destPath = Paths.get(clientPC.getFilePath(), clientPC.getFileName() + "(copy)");
 
-        Path sourcePath = Paths.get(source.getFilePath(), source.getFileName());
-        Path destPath = Paths.get(destination.getFilePath()).resolve(sourcePath.getFileName().toString());
-
-        try {
-            utils.methodForCopy(sourcePath, destPath);
-            updatePanel();
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Copy error", ButtonType.OK);
-            alert.showAndWait();
+            try {
+                utils.methodForCopy(sourcePath, destPath);
+                updatePanel();
+            } catch (IOException e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Copy error", ButtonType.OK);
+                alert.showAndWait();
+            }
         }
     }
 
     /**
      * метод удаляет выбранный файл или директорию
+     *
      * @param actionEvent - нажатие кнопки Delete File
      */
     public void deleteFile(ActionEvent actionEvent) {
@@ -240,24 +254,41 @@ public class InterfaceController implements Initializable {
 
         PanelController source = null;
 
-        if (clientPC.getFileName() != null) {
-            source = clientPC;
-        }
         if (serverPC.getFileName() != null) {
             source = serverPC;
+            nettyClient.sendMessage("rm--s-" + source.getFileName());
         }
-        Path sourcePath = Paths.get(source.getFilePath(), source.getFileName());
-        utils.methodForDelete(sourcePath);
-        updatePanel();
+
+        if (clientPC.getFileName() != null) {
+            source = clientPC;
+            Path sourcePath = Paths.get(source.getFilePath(), source.getFileName());
+            utils.methodForDelete(sourcePath);
+            updatePanel();
+        }
+
     }
 
     /**
      * метод для поиска файла во всех папках и выдача полного пути файла в поле info
+     *
      * @param actionEvent - нажатие кнопки Search File
      */
     public void search(ActionEvent actionEvent) {
-        utils.methodForSearch(clientPC.getFilePath(), filename.getText(), info);
-        utils.methodForSearch(serverPC.getFilePath(), filename.getText(), info);
+        info.clear();
+        String target = null;
+
+        if (serverPC.tableInfo.isFocused()) {
+            target = serverPC.getFilePath();
+            nettyClient.sendMessage("search--s-"+ filename.getText());
+        }
+        if (clientPC.tableInfo.isFocused()) {
+            target = clientPC.getFilePath();
+            utils.methodForSearch(clientPC.getFilePath(), filename.getText(), info);
+        }
+        if (target == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Choose Folder", ButtonType.OK);
+            alert.showAndWait();
+        }
     }
 
     /**
@@ -265,8 +296,8 @@ public class InterfaceController implements Initializable {
      */
     public void registration() {
         if (nicknameField.getText().length() * login.getText().length() * password.getText().length() != 0) {
-            clientDirectory = "client_" + login.getText();
-            nettyClient.sendMessage("reg " + login.getText() + " " + password.getText() + " " + nicknameField.getText());
+            clientDirectory = login.getText() + "_client";
+            nettyClient.sendMessage("reg--s-" + login.getText() + "--s-" + password.getText() + "--s-" + nicknameField.getText());
         }
         try {
             Path newDir = Paths.get(clientDirectory);
@@ -281,8 +312,8 @@ public class InterfaceController implements Initializable {
      */
     public void authentication() {
         if (login.getText().length() * password.getText().length() != 0) {
-            clientDirectory = "client_" + login.getText();
-            nettyClient.sendMessage("auth " + login.getText() + " " + password.getText());
+            clientDirectory = login.getText() +"_client";
+            nettyClient.sendMessage("auth--s-" + login.getText() + "--s-" + password.getText());
         }
         try {
             Path newDir = Paths.get(clientDirectory);
@@ -298,7 +329,7 @@ public class InterfaceController implements Initializable {
      */
     public void changeNickName() {
         if (nickname != null) {
-            nettyClient.sendMessage("nick " + nickname + " " + nicknameField.getText());
+            nettyClient.sendMessage("nick--s-" + nickname + "--s-" + nicknameField.getText());
         }
     }
 
@@ -306,14 +337,17 @@ public class InterfaceController implements Initializable {
      * метод обновляет директории после изменений и отправляет информацию о новой директории на сервер
      */
     public void updatePanel() {
-        clientPC.updateList(Paths.get(clientPC.getFilePath()));
-        serverPC.updateList(Paths.get(serverPC.getFilePath()));
-        nettyClient.sendMessage("cd " + serverPC.getFilePath());
-        System.out.println(serverPC.getFilePath());
+        Platform.runLater(() -> {
+            clientPC.updateList(Paths.get(clientPC.getFilePath()));
+            serverPC.updateList(Paths.get(serverPC.getFilePath()));
+            nettyClient.sendMessage("cd--s-" + serverPC.getFilePath());
+            System.out.println(serverPC.getFilePath());
+        });
     }
 
     /**
      * метод отправки сообщения на сервер об отключении и очистке всех полей на клиенте
+     *
      * @param actionEvent - нажатие кнопки Disconnect
      */
     public void disconnect(ActionEvent actionEvent) {
@@ -328,6 +362,7 @@ public class InterfaceController implements Initializable {
 
     /**
      * метод для просмотра содержимого выбранного файла или список файлов в выбранной директории
+     *
      * @param actionEvent - нажатие кнопки Show File
      */
     public void showFile(ActionEvent actionEvent) {
@@ -335,33 +370,35 @@ public class InterfaceController implements Initializable {
 
         PanelController source = null;
 
-        if (clientPC.getFileName() != null) {
-            source = clientPC;
-        }
         if (serverPC.getFileName() != null) {
             source = serverPC;
+            nettyClient.sendMessage("sw--s-" + source.getFileName());
         }
 
-        Path sourcePath = Paths.get(source.getFilePath(), source.getFileName());
-        String readyLine;
-        info.clear();
-        if (Files.isDirectory(sourcePath)) {
-            info.setText("Files in Folder " + source.getFileName() + "\r\n" + String.join("\r\n", new File(String.valueOf(sourcePath)).list()));
-        } else {
-            try {
-                for (String line : Files.readAllLines(sourcePath)) {
-                    readyLine = line + "\r\n";
-                    info.appendText(readyLine);
+        if (clientPC.getFileName() != null) {
+            source = clientPC;
+            Path sourcePath = Paths.get(source.getFilePath(), source.getFileName());
+            String readyLine;
+            info.setText("Info:\r\n");
+            if (Files.isDirectory(sourcePath)) {
+                info.appendText("Files in Folder " + source.getFileName() + "\r\n" + String.join("\r\n", new File(String.valueOf(sourcePath)).list()));
+            } else {
+                try {
+                    for (String line : Files.readAllLines(sourcePath)) {
+                        readyLine = line + "\r\n";
+                        info.appendText(readyLine);
+                    }
+                } catch (IOException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Show file error", ButtonType.OK);
+                    alert.showAndWait();
                 }
-            } catch (IOException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Show file error", ButtonType.OK);
-                alert.showAndWait();
             }
         }
     }
 
     /**
      * метод изменяет заголовок окна программы добавляя ник пользователя
+     *
      * @param nick новый ник
      */
     private void setTitle(String nick) {
@@ -373,10 +410,11 @@ public class InterfaceController implements Initializable {
 
     /**
      * метод для кнопки ОК, которая соответствует трём операциям: Регистрация, Вход, Смена ника
+     *
      * @param actionEvent - нажатие кнопки ОК
      */
     public void executeOperation(ActionEvent actionEvent) {
-        switch (operationId){
+        switch (operationId) {
             case 1:
                 registration();
                 break;
@@ -391,6 +429,7 @@ public class InterfaceController implements Initializable {
 
     /**
      * метод выбора операции Входа пользователя и компонования интерфейса пользователя
+     *
      * @param actionEvent - нажатие кнопки Authentication
      */
     public void operAuth(ActionEvent actionEvent) {
@@ -409,6 +448,7 @@ public class InterfaceController implements Initializable {
 
     /**
      * метод выбора операции Регистрации пользователя и компонования интерфейса пользователя
+     *
      * @param actionEvent - нажатие кнопки Registration
      */
     public void operReg(ActionEvent actionEvent) {
@@ -427,6 +467,7 @@ public class InterfaceController implements Initializable {
 
     /**
      * метод выбора операции Смены ника пользователя и компонования интерфейса пользователя
+     *
      * @param actionEvent - нажатие кнопки Change Nickname
      */
     public void operNick(ActionEvent actionEvent) {
@@ -445,15 +486,17 @@ public class InterfaceController implements Initializable {
 
     /**
      * вызов метода возврата
+     *
      * @param actionEvent - нажатие кнопки Back
      */
-    public void back(ActionEvent actionEvent){
+    public void back(ActionEvent actionEvent) {
         cancelAll();
     }
+
     /**
      * метод возврата без регистрации смены ника и входа. Убирает все поля и кнопки для регистрации
      */
-    public void cancelAll(){
+    public void cancelAll() {
         nicknameField.setVisible(false);
         login.setVisible(false);
         password.setVisible(false);
@@ -465,6 +508,4 @@ public class InterfaceController implements Initializable {
         ok.setManaged(false);
         back.setManaged(false);
     }
-
-
 }

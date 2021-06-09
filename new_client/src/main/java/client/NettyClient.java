@@ -1,12 +1,17 @@
 package client;
 
+import fileutils.SendFile;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
@@ -32,8 +37,8 @@ public class NettyClient {
                                      protected void initChannel(SocketChannel socketChannel) throws Exception {
                                          channel = socketChannel;
                                          socketChannel.pipeline().addLast(
-                                                 new StringEncoder(),
-                                                 new StringDecoder(),
+                                                 new ObjectEncoder(),
+                                                 new ObjectDecoder(Integer.MAX_VALUE, ClassResolvers.cacheDisabled(null)),
                                                  new InfoMessageHandler(callback)
                                          );
                                      }
@@ -53,11 +58,12 @@ public class NettyClient {
         t1.start();
     }
     /**
-     * метод отправки комманд на сервер
+     * метод отправки комманд или объектов на сервер
      * @param msg - команда
      */
-    public void sendMessage(String msg) {
+    public void sendMessage(Object msg) {
         channel.writeAndFlush(msg);
     }
 }
+
 

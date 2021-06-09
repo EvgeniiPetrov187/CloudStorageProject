@@ -1,5 +1,6 @@
 package client;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
@@ -27,71 +28,75 @@ public class PanelController implements Initializable {
 
     /**
      * построение двух таблиц, отображающих файлы и их свойства
+     *
      * @param location
      * @param resources
      */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        TableColumn<MyFile, String> fileType = new TableColumn<>("Type");
-        fileType.setCellValueFactory(param ->
-                new SimpleStringProperty(param.getValue().getType().getName()));
-        fileType.setPrefWidth(50);
+        Platform.runLater(() -> {
+            TableColumn<MyFile, String> fileType = new TableColumn<>("Type");
+            fileType.setCellValueFactory(param ->
+                    new SimpleStringProperty(param.getValue().getType().getName()));
+            fileType.setPrefWidth(50);
 
-        TableColumn<MyFile, String> fileName = new TableColumn<>("Name");
-        fileName.setCellValueFactory(param ->
-                new SimpleStringProperty(param.getValue().getFilename()));
-        fileName.setPrefWidth(120);
+            TableColumn<MyFile, String> fileName = new TableColumn<>("Name");
+            fileName.setCellValueFactory(param ->
+                    new SimpleStringProperty(param.getValue().getFilename()));
+            fileName.setPrefWidth(120);
 
-        TableColumn<MyFile, Long> fileSize = new TableColumn<>("Size");
-        fileSize.setCellValueFactory(param ->
-                new SimpleObjectProperty(param.getValue().getSize()));
-        fileSize.setPrefWidth(90);
-        fileSize.setCellFactory(column -> {
-                    return new TableCell<MyFile, Long>() {
-                        @Override
-                        protected void updateItem(Long item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if (item == null || empty) {
-                                setText(null);
-                                setStyle("");
-                            } else {
-                                String text = String.format("%,d bytes", item);
-                                if (item == -1L)
-                                    text = "dir";
-                                setText(text);
+            TableColumn<MyFile, Long> fileSize = new TableColumn<>("Size");
+            fileSize.setCellValueFactory(param ->
+                    new SimpleObjectProperty(param.getValue().getSize()));
+            fileSize.setPrefWidth(90);
+            fileSize.setCellFactory(column -> {
+                        return new TableCell<MyFile, Long>() {
+                            @Override
+                            protected void updateItem(Long item, boolean empty) {
+                                super.updateItem(item, empty);
+                                if (item == null || empty) {
+                                    setText(null);
+                                    setStyle("");
+                                } else {
+                                    String text = String.format("%,d bytes", item);
+                                    if (item == -1L)
+                                        text = "dir";
+                                    setText(text);
+                                }
                             }
-                        }
-                    };
+                        };
+                    }
+            );
+
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss");
+            TableColumn<MyFile, String> fileDate = new TableColumn<>("Date");
+            fileDate.setCellValueFactory(param ->
+                    new SimpleStringProperty(param.getValue().getModifiedTime().format(dateTimeFormatter)));
+            fileDate.setPrefWidth(120);
+
+            tableInfo.getColumns().addAll(fileType, fileName, fileSize, fileDate);
+            tableInfo.getSortOrder().add(fileType);
+            tableInfo.getSortOrder().add(fileName);
+
+            tableInfo.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    if (event.getClickCount() == 2) {
+                        Path path = Paths.get(filePath.getText())
+                                .resolve(tableInfo.getSelectionModel()
+                                        .getSelectedItem()
+                                        .getFilename());
+                        if (Files.isDirectory(path))
+                            updateList(path);
+                    }
                 }
-        );
-
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss");
-        TableColumn<MyFile, String> fileDate = new TableColumn<>("Date");
-        fileDate.setCellValueFactory(param ->
-                new SimpleStringProperty(param.getValue().getModifiedTime().format(dateTimeFormatter)));
-        fileDate.setPrefWidth(120);
-
-        tableInfo.getColumns().addAll(fileType, fileName, fileSize, fileDate);
-        tableInfo.getSortOrder().add(fileType);
-        tableInfo.getSortOrder().add(fileName);
-
-        tableInfo.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.getClickCount() == 2) {
-                    Path path = Paths.get(filePath.getText())
-                            .resolve(tableInfo.getSelectionModel()
-                                    .getSelectedItem()
-                                    .getFilename());
-                    if (Files.isDirectory(path))
-                        updateList(path);
-                }
-            }
+            });
         });
     }
 
     /**
      * обновление директорий после измененеий или перехода
+     *
      * @param path
      */
     public void updateList(Path path) {
@@ -110,18 +115,22 @@ public class PanelController implements Initializable {
     }
 
     /**
-     * возврат вверх по директории
+     * возврат вверх по директории до папок сервера и клиента
+     *
      * @param actionEvent - нажатие на кнопку Up
      */
     public void upToDirectory(ActionEvent actionEvent) {
         Path up = Paths.get(filePath.getText()).getParent();
-        if (up != null) {
+        if (filePath.getText().endsWith("server") || filePath.getText().endsWith("client")) {
+            return;
+        } else {
             updateList(up);
         }
     }
 
     /**
      * метод возвращает имя выбранного файла
+     *
      * @return - имя файла
      */
     public String getFileName() {
@@ -133,6 +142,7 @@ public class PanelController implements Initializable {
 
     /**
      * метод возвращает путь выбранного файла
+     *
      * @return - путь файла
      */
     public String getFilePath() {
@@ -141,7 +151,8 @@ public class PanelController implements Initializable {
 
     /**
      * метод изменяет путь выбранного файла
-     * @param  - новый путь файла
+     *
+     * @param - новый путь файла
      */
     public void setFilePath(String filePath) {
         this.filePath.setText(filePath);

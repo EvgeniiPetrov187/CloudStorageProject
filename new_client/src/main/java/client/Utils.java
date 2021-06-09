@@ -34,8 +34,7 @@ public class Utils {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     if (filename.equals(file.getFileName().toString())) {
-                        info.clear();
-                        info.appendText(file.getFileName() + " is founded.\r\nPath: " + file.toAbsolutePath() + "\n\r");
+                        info.appendText("Info:\r\n" + file.getFileName() + " is founded.\r\nPath: " + file.toAbsolutePath() + "\n\r");
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -43,8 +42,7 @@ public class Utils {
                 @Override
                 public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
                     if (filename.equals(dir.getFileName().toString())) {
-                        info.clear();
-                        info.appendText(dir.getFileName() + " is founded.\r\nPath: " + dir.toAbsolutePath() + "\n\r");
+                        info.appendText("Info:\r\n" + dir.getFileName() + " is founded.\r\nPath: " + dir.toAbsolutePath() + "\n\r");
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -99,8 +97,7 @@ public class Utils {
                 }
             });
         } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Delete error", ButtonType.OK);
-            alert.showAndWait();
+            e.printStackTrace();
         }
     }
 }

@@ -11,6 +11,7 @@
     <modules>
         <module>new_client</module>
         <module>new_server</module>
+        <module>send_files</module>
     </modules>
 
     <properties>

@@ -16,14 +16,15 @@ public class MyFile {
 
         private String name;
 
-        public String getName(){
+        public String getName() {
             return name;
         }
 
-        TypeOfFile(String name){
+        TypeOfFile(String name) {
             this.name = name;
         }
     }
+
     private String filename;
     private TypeOfFile type;
     private long size;
@@ -61,12 +62,12 @@ public class MyFile {
         return modifiedTime;
     }
 
-    public MyFile(Path pathToFile)  {
+    public MyFile(Path pathToFile) {
         try {
             this.filename = pathToFile.getFileName().toString();
             this.size = Files.size(pathToFile);
             this.type = Files.isDirectory(pathToFile) ? TypeOfFile.DIRECTORY : TypeOfFile.FILE;
-            if (this.type == TypeOfFile.DIRECTORY){
+            if (this.type == TypeOfFile.DIRECTORY) {
                 this.size = -1L;
             }
             this.modifiedTime = LocalDateTime.ofInstant(Files
