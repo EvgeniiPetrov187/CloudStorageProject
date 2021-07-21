@@ -17,7 +17,7 @@ public class FileInputHandler extends SimpleChannelInboundHandler<SendFile> {
         if (!Files.exists(Paths.get(sendFile.getPath(), sendFile.getName()))) {
             Files.createFile(Paths.get(sendFile.getPath(), sendFile.getName()));
             Files.write(Paths.get(sendFile.getPath(), sendFile.getName()), sendFile.getBytes());
-            channelHandlerContext.writeAndFlush("new");
+            channelHandlerContext.writeAndFlush("new--s-" + sendFile.getPath());
         }
     }
 }

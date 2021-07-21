@@ -33,7 +33,6 @@
         <Button maxWidth="100" focusTraversable="false" text="Delete File" onAction="#deleteFile"/>
         <Button maxWidth="100" focusTraversable="false" text="Show File" onAction="#showFile"/>
         <Button maxWidth="100" focusTraversable="false" text="Search File" onAction="#search"/>
-
     </HBox>
     <HBox>
         <fx:include fx:id="clientInfo" source="Panel.fxml" HBox.hgrow="ALWAYS"/>

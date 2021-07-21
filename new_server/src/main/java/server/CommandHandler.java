@@ -1,20 +1,24 @@
 package server;
 
+import fileutils.MyFile;
 import fileutils.SendFile;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import java.io.File;
-import java.io.IOException;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class CommandHandler extends SimpleChannelInboundHandler<String> {
-    private DataBaseService dataBaseService = new DataBaseService();
+    private final DataBaseService dataBaseService = new DataBaseService();
     private String currentDirectory;
-    private String abs;
+    private String absolutCurrentDirectory;
     private int numberOfNewFiles = 0;
     private int numberOfNewDirectories = 0;
     private ServerUtils serverUtils;
@@ -54,6 +58,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
         try {
             if (command.startsWith("cd")) {
                 currentDirectory = commands[1];
+                sendList(ctx, currentDirectory);
             } else if (command.startsWith("reg")) {
                 registrationDB(commands, ctx);
             } else if (command.startsWith("auth")) {
@@ -73,10 +78,9 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
             } else if (command.startsWith("sw")) {
                 showFile(commands[1], ctx);
             } else if (command.startsWith("copy")) {
-                copyFile(commands[1], ctx);
-            } else if (command.startsWith("search")) {
+                copyFile(commands, ctx);
+            } else if (command.startsWith("search"))
                 searchFile(commands[1], ctx);
-            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -98,6 +102,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
 
     /**
      * поиск файлов на сервере
+     *
      * @param com - команда от клиента - имя файла
      * @param ctx - клиент
      * @throws IOException
@@ -106,20 +111,20 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
         serverUtils.methodForSearch(currentDirectory, com, ctx);
     }
 
-
     /**
      * копирование файлов внутри папки на сервере
+     *
      * @param com - команда от клиента - имя файла
      * @param ctx - клиент
      * @throws IOException
      */
-    private void copyFile(String com, ChannelHandlerContext ctx) throws IOException {
-        Path sourcePath = Paths.get(currentDirectory, com);
-        Path destPath = Paths.get(currentDirectory, com + "(copy)");
+    private void copyFile(String[] com, ChannelHandlerContext ctx) throws IOException {
+        currentDirectory = com[1];
+        Path sourcePath = Paths.get(currentDirectory, com[2]);
+        Path destPath = Paths.get(currentDirectory, com[2] + "(copy)");
         serverUtils.methodForCopy(sourcePath, destPath);
-        ctx.writeAndFlush("new");
+        ctx.writeAndFlush("new--s-" + currentDirectory);
     }
-
 
 
     /**
@@ -169,8 +174,9 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
      * @throws IOException
      */
     private void deleteFile(String com[], ChannelHandlerContext ctx) throws IOException {
-        serverUtils.methodForDelete(Paths.get(currentDirectory, com[1]));
-        ctx.writeAndFlush("new");
+        currentDirectory = com[1];
+        serverUtils.methodForDelete(Paths.get(currentDirectory, com[2]));
+        ctx.writeAndFlush("new--s-" + currentDirectory);
     }
 
     /**
@@ -182,16 +188,18 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
      */
     private void createNewDirectory(String[] com, ChannelHandlerContext ctx) throws IOException {
         try {
-            Path newFile = Paths.get(currentDirectory, com[1]);
+            currentDirectory = com[1];
+            Path newFile = Paths.get(currentDirectory, com[2]);
             if (!Files.exists(newFile)) {
                 Files.createDirectory(newFile);
-                ctx.writeAndFlush("new");
+                ctx.writeAndFlush("new--s-" + currentDirectory);
             }
         } catch (ArrayIndexOutOfBoundsException e) {
+            currentDirectory = com[1];
             Path newFile = Paths.get(currentDirectory, "New Folder(" + numberOfNewDirectories + ")");
             numberOfNewDirectories++;
             Files.createDirectory(newFile);
-            ctx.writeAndFlush("new");
+            ctx.writeAndFlush("new--s-" + currentDirectory);
         }
     }
 
@@ -203,17 +211,18 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
      * @throws IOException
      */
     public void createNewFile(String[] com, ChannelHandlerContext ctx) throws IOException {
+        currentDirectory = com[1];
         try {
-            Path newFile = Paths.get(currentDirectory, com[1]);
+            Path newFile = Paths.get(currentDirectory, com[2]);
             if (!Files.exists(newFile)) {
                 Files.createFile(newFile);
-                ctx.writeAndFlush("new");
+                ctx.writeAndFlush("new--s-" + currentDirectory);
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             Path newFile = Paths.get(currentDirectory, "new file(" + numberOfNewFiles + ")");
             numberOfNewFiles++;
             Files.createFile(newFile);
-            ctx.writeAndFlush("new");
+            ctx.writeAndFlush("new--s-" + currentDirectory);
         }
     }
 
@@ -231,13 +240,13 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
             currentDirectory = commands[1] + "_server";
             try {
                 Path newDir = Paths.get(currentDirectory);
-                abs = newDir.toAbsolutePath().toString();
+                absolutCurrentDirectory = newDir.toAbsolutePath().toString();
                 if (!Files.exists(newDir))
                     Files.createDirectory(newDir);
             } catch (IOException e) {
                 ctx.writeAndFlush("Info: Folder creation error");
             }
-            ctx.writeAndFlush("auth--s-" + abs + "--s-" + nickname);
+            ctx.writeAndFlush("auth--s-" + absolutCurrentDirectory + "--s-" + nickname);
         } catch (SQLException e) {
             ctx.writeAndFlush("Info: Authentication failed");
             e.printStackTrace();
@@ -282,5 +291,13 @@ public class CommandHandler extends SimpleChannelInboundHandler<String> {
             ctx.writeAndFlush("Info: Change nickname failed");
             e.printStackTrace();
         }
+    }
+
+    public void sendList(ChannelHandlerContext ctx, String directory) throws IOException {
+        List<MyFile> list = new ArrayList<>(
+                Files.list(Paths.get(directory))
+                        .map(MyFile::new)
+                        .collect(Collectors.toList()));
+        ctx.writeAndFlush(list);
     }
 }

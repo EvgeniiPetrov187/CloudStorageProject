@@ -1,9 +1,7 @@
 package client;
 
-import fileutils.SendFile;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -12,20 +10,17 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
 import io.netty.handler.codec.serialization.ObjectEncoder;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 
 public class NettyClient {
     private SocketChannel channel;
     private static final int PORT = 36000;
-    private CallbackCommand callback;
+
 
     /**
      * клиент на Netty
      * @param callback - сообщение от сервера
      */
     public NettyClient(CallbackCommand callback) {
-        this.callback = callback;
         Thread t1 = new Thread(() -> {
             EventLoopGroup worker = new NioEventLoopGroup();
             try {
@@ -34,7 +29,7 @@ public class NettyClient {
                         .channel(NioSocketChannel.class)
                         .handler(new ChannelInitializer<SocketChannel>() {
                                      @Override
-                                     protected void initChannel(SocketChannel socketChannel) throws Exception {
+                                     protected void initChannel(SocketChannel socketChannel) {
                                          channel = socketChannel;
                                          socketChannel.pipeline().addLast(
                                                  new ObjectEncoder(),

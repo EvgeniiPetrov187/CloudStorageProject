@@ -1,6 +1,7 @@
-package client;
+package fileutils;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -9,7 +10,7 @@ import java.time.ZoneOffset;
 /**
  * класс который отображает файлы в таблицах класса PanelController
  */
-public class MyFile {
+public class MyFile implements Serializable {
     public enum TypeOfFile {
         FILE("File"),
         DIRECTORY("Directory");
@@ -78,4 +79,13 @@ public class MyFile {
         }
     }
 
+    @Override
+    public String toString() {
+        return "MyFile{" +
+                "filename='" + filename + '\'' +
+                ", type=" + type +
+                ", size=" + size +
+                ", modifiedTime=" + modifiedTime +
+                '}';
+    }
 }

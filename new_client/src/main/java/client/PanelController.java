@@ -1,5 +1,6 @@
 package client;
 
+import fileutils.MyFile;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -49,23 +51,21 @@ public class PanelController implements Initializable {
             fileSize.setCellValueFactory(param ->
                     new SimpleObjectProperty(param.getValue().getSize()));
             fileSize.setPrefWidth(90);
-            fileSize.setCellFactory(column -> {
-                        return new TableCell<MyFile, Long>() {
-                            @Override
-                            protected void updateItem(Long item, boolean empty) {
-                                super.updateItem(item, empty);
-                                if (item == null || empty) {
-                                    setText(null);
-                                    setStyle("");
-                                } else {
-                                    String text = String.format("%,d bytes", item);
-                                    if (item == -1L)
-                                        text = "dir";
-                                    setText(text);
-                                }
-                            }
-                        };
+            fileSize.setCellFactory(column -> new TableCell<MyFile, Long>() {
+                @Override
+                protected void updateItem(Long item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (item == null || empty) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        String text = String.format("%,d bytes", item);
+                        if (item == -1L)
+                            text = "dir";
+                        setText(text);
                     }
+                }
+            }
             );
 
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss");
@@ -112,6 +112,13 @@ public class PanelController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Error. Cannot update list of files", ButtonType.OK);
             alert.showAndWait();
         }
+    }
+
+    public void updateList(List<MyFile> list) {
+        tableInfo.getItems().clear();
+        tableInfo.getItems()
+                .addAll(list);
+        tableInfo.sort();
     }
 
     /**

@@ -3,8 +3,6 @@ package client;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.util.List;
-
 public class InfoMessageHandler extends SimpleChannelInboundHandler<Object> {
     CallbackCommand callback;
 

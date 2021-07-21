@@ -32,7 +32,7 @@ public class Utils {
             Path pathToFile = Paths.get(pathName);
             Files.walkFileTree(pathToFile, new SimpleFileVisitor<Path>() {
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (filename.equals(file.getFileName().toString())) {
                         info.appendText("Info:\r\n" + file.getFileName() + " is founded.\r\nPath: " + file.toAbsolutePath() + "\n\r");
                     }
@@ -40,7 +40,7 @@ public class Utils {
                 }
 
                 @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
                     if (filename.equals(dir.getFileName().toString())) {
                         info.appendText("Info:\r\n" + dir.getFileName() + " is founded.\r\nPath: " + dir.toAbsolutePath() + "\n\r");
                     }

@@ -15,7 +15,7 @@ public class StartClient extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws IOException, InterruptedException {
+    public void start(Stage primaryStage) throws IOException {
         Parent root = FXMLLoader.load(getClass().getResource("/UserInterface.fxml"));
         primaryStage.setTitle("Cloud Storage by E.Petrov");
         primaryStage.setScene(new Scene(root, 1200, 600));

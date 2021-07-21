@@ -1,6 +1,7 @@
 package client;
 
 
+import fileutils.MyFile;
 import fileutils.SendFile;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -10,11 +11,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.ResourceBundle;
+import java.util.*;
 
 
 public class InterfaceController implements Initializable {
@@ -31,6 +31,7 @@ public class InterfaceController implements Initializable {
     private int numberOfNewDirectories = 1;
     private int operationId;
     private SendFile sendFile;
+    private List<MyFile> list;
 
     @FXML
     public Button ok;
@@ -75,40 +76,57 @@ public class InterfaceController implements Initializable {
     public void connect() {
         Platform.runLater(() -> {
             nettyClient = new NettyClient((args) -> {
-                if (args instanceof String) {
-                    String msg = (String) args;
-                    String[] answer = msg.split("--s-");
-                    if (msg.startsWith("auth")) {
-                        serverDirectory = answer[1];
-                        nickname = answer[2];
-                        setTitle(nickname);
-                        clientPC.setFilePath(clientDirectory);
-                        serverPC.setFilePath(serverDirectory);
-                        updatePanel();
-                        cancelAll();
-                        info.setText("Authentication successful");
-                    } else if (msg.startsWith("nick")) {
-                        nickname = answer[1];
-                        setTitle(nickname);
-                        info.clear();
-                    } else if (msg.startsWith("Info")) {
-                        info.setText(msg);
-                    } else if (msg.startsWith("new")) {
-                        updatePanel();
-                    }
-                } else if (args instanceof SendFile) {
-                    try {
-                        args = new SendFile(((SendFile) args).getName(), ((SendFile) args).getBytes(), ((SendFile) args).getPath());
-                        if (!Files.exists(Paths.get(clientPC.getFilePath(), ((SendFile) args).getName()))) {
-                            Files.createFile(Paths.get(clientPC.getFilePath(), ((SendFile) args).getName()));
-                            Files.write(Paths.get(clientPC.getFilePath(), ((SendFile) args).getName()), ((SendFile) args).getBytes());
+                System.out.println(Arrays.toString(args));
+                for (int i = 0; i < args.length; i++) {
+
+                    if (args[i] instanceof String) {
+                        String msg = (String) args[i];
+                        String[] answer = msg.split("--s-");
+                        if (msg.startsWith("auth")) {
+                            serverDirectory = answer[1];
+                            nickname = answer[2];
+                            setTitle(nickname);
+                            clientPC.setFilePath(clientDirectory);
+                            serverPC.setFilePath(serverDirectory);
+                            refresh();
+                            cancelAll();
+                            info.setText("Authentication successful");
+                        } else if (msg.startsWith("nick")) {
+                            nickname = answer[1];
+                            setTitle(nickname);
+                            info.clear();
+                        } else if (msg.startsWith("Info")) {
+                            info.setText(msg);
+                        } else if (msg.startsWith("new")) {
+                            serverDirectory = answer[1];
+                            serverPC.setFilePath(serverDirectory);
+                            refresh();
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+
+                    } else if (args[i] instanceof SendFile) {
+                        try {
+                            sendFile = new SendFile(((SendFile) args[i]).getName(), ((SendFile) args[i]).getBytes(), ((SendFile) args[i]).getPath());
+                            if (!Files.exists(Paths.get(clientPC.getFilePath(), sendFile.getName()))) {
+                                Files.createFile(Paths.get(clientPC.getFilePath(), sendFile.getName()));
+                                Files.write(Paths.get(clientPC.getFilePath(), (sendFile.getName())), sendFile.getBytes());
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        refresh();
+
+                    } else if (args[i] instanceof List) {
+                        list = (List<MyFile>) args[i];
+                        updatePanel();
                     }
-                    updatePanel();
                 }
             });
+        });
+    }
+
+    public void refresh() {
+        Platform.runLater(() -> {
+            nettyClient.sendMessage("cd--s-" + serverPC.getFilePath());
         });
     }
 
@@ -122,7 +140,7 @@ public class InterfaceController implements Initializable {
 
         if (serverPC.tableInfo.isFocused()) {
             target = serverPC.getFilePath();
-            nettyClient.sendMessage("touch--s-" + filename.getText());
+            nettyClient.sendMessage("touch--s-" + target + "--s-" + filename.getText());
         }
 
         if (clientPC.tableInfo.isFocused()) {
@@ -158,7 +176,7 @@ public class InterfaceController implements Initializable {
 
         if (serverPC.tableInfo.isFocused()) {
             target = serverPC.getFilePath();
-            nettyClient.sendMessage("mkdir--s-" + filename.getText());
+            nettyClient.sendMessage("mkdir--s-" + target +"--s-" + filename.getText());
         }
         if (clientPC.tableInfo.isFocused()) {
             target = clientPC.getFilePath();
@@ -225,10 +243,8 @@ public class InterfaceController implements Initializable {
     public void copyFile(ActionEvent actionEvent) {
         utils.chooseFileAlert(serverPC, clientPC);
 
-        PanelController source = null;
-
         if (serverPC.getFileName() != null) {
-            nettyClient.sendMessage("copy--s-" + serverPC.getFileName());
+            nettyClient.sendMessage("copy--s-"+ serverPC.getFilePath() + "--s-"+ serverPC.getFileName());
         }
         if (clientPC.getFileName() != null) {
             Path sourcePath = Paths.get(clientPC.getFilePath(), clientPC.getFileName());
@@ -256,7 +272,7 @@ public class InterfaceController implements Initializable {
 
         if (serverPC.getFileName() != null) {
             source = serverPC;
-            nettyClient.sendMessage("rm--s-" + source.getFileName());
+            nettyClient.sendMessage("rm--s-" + source.getFilePath()+"--s-"+source.getFileName());
         }
 
         if (clientPC.getFileName() != null) {
@@ -265,7 +281,6 @@ public class InterfaceController implements Initializable {
             utils.methodForDelete(sourcePath);
             updatePanel();
         }
-
     }
 
     /**
@@ -279,7 +294,7 @@ public class InterfaceController implements Initializable {
 
         if (serverPC.tableInfo.isFocused()) {
             target = serverPC.getFilePath();
-            nettyClient.sendMessage("search--s-"+ filename.getText());
+            nettyClient.sendMessage("search--s-" + filename.getText());
         }
         if (clientPC.tableInfo.isFocused()) {
             target = clientPC.getFilePath();
@@ -312,7 +327,7 @@ public class InterfaceController implements Initializable {
      */
     public void authentication() {
         if (login.getText().length() * password.getText().length() != 0) {
-            clientDirectory = login.getText() +"_client";
+            clientDirectory = login.getText() + "_client";
             nettyClient.sendMessage("auth--s-" + login.getText() + "--s-" + password.getText());
         }
         try {
@@ -339,9 +354,7 @@ public class InterfaceController implements Initializable {
     public void updatePanel() {
         Platform.runLater(() -> {
             clientPC.updateList(Paths.get(clientPC.getFilePath()));
-            serverPC.updateList(Paths.get(serverPC.getFilePath()));
-            nettyClient.sendMessage("cd--s-" + serverPC.getFilePath());
-            System.out.println(serverPC.getFilePath());
+            serverPC.updateList(list);
         });
     }
 
@@ -499,6 +512,7 @@ public class InterfaceController implements Initializable {
     public void cancelAll() {
         nicknameField.setVisible(false);
         login.setVisible(false);
+        password.clear();
         password.setVisible(false);
         ok.setVisible(false);
         back.setVisible(false);
